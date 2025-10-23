@@ -32,8 +32,9 @@ class Settings(BaseSettings):
     host: str = '0.0.0.0'
     port: int = 8000
     
-    # 向量数据库配置
-    vector_db_path: str = './data/chroma_db'
+    # 向量数据库配置（Milvus）
+    milvus_host: str = 'localhost'
+    milvus_port: int = 19530
     embedding_model: str = 'paraphrase-multilingual-MiniLM-L12-v2'
     
     # 大模型配置
@@ -54,10 +55,6 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     
-    @property
-    def vector_db_full_path(self) -> Path:
-        """获取向量数据库完整路径."""
-        return Path(self.vector_db_path).resolve()
 
 
 # 全局配置实例

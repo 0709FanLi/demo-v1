@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     # 启动时
     logger.info(f'应用启动 - {settings.app_name} v{settings.app_version}')
     logger.info(f'Debug模式: {settings.debug}')
-    logger.info(f'向量数据库路径: {settings.vector_db_path}')
+    logger.info(f'Milvus地址: {settings.milvus_host}:{settings.milvus_port}')
     
     yield
     

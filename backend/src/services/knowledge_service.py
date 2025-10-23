@@ -1,4 +1,4 @@
-"""知识库管理服务.
+"""知识库管理服务（基于 Milvus）.
 
 负责知识库的增删改查和向量检索功能。
 遵守企业级规范：
@@ -8,13 +8,18 @@
 - 单一职责
 """
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-import chromadb
-from chromadb.config import Settings as ChromaSettings
+from pymilvus import (
+    connections,
+    Collection,
+    CollectionSchema,
+    FieldSchema,
+    DataType,
+    utility,
+)
 from sentence_transformers import SentenceTransformer
 
 from ..config import settings
@@ -24,7 +29,7 @@ from ..utils.helpers import generate_doc_id, split_text
 
 
 class KnowledgeService:
-    """知识库管理服务类.
+    """知识库管理服务类（Milvus实现）.
     
     功能：
     1. 知识条目的增删改查
@@ -36,41 +41,28 @@ class KnowledgeService:
     def __init__(self):
         """初始化知识库服务.
         
-        创建向量数据库连接和加载向量化模型。
+        创建Milvus连接和加载向量化模型。
         """
-        self._initialize_vector_db()
+        self._initialize_milvus()
         self._initialize_embedding_model()
-        logger.info('知识库服务初始化完成')
+        self._create_collection()
+        logger.info('知识库服务初始化完成（Milvus）')
     
-    def _initialize_vector_db(self) -> None:
-        """初始化Chroma向量数据库."""
+    def _initialize_milvus(self) -> None:
+        """初始化Milvus连接."""
         try:
-            # 确保数据目录存在
-            db_path = Path(settings.vector_db_path)
-            db_path.mkdir(parents=True, exist_ok=True)
-            
-            # 创建Chroma客户端
-            self.client = chromadb.Client(
-                ChromaSettings(
-                    persist_directory=str(db_path),
-                    anonymized_telemetry=False,
-                )
+            connections.connect(
+                alias='default',
+                host=settings.milvus_host,
+                port=str(settings.milvus_port),
             )
-            
-            # 获取或创建集合
-            self.collection = self.client.get_or_create_collection(
-                name='knowledge_base',
-                metadata={'description': '企业知识库'},
-            )
-            
             logger.info(
-                f'向量数据库初始化成功 - 路径: {db_path}, '
-                f'现有文档数: {self.collection.count()}'
+                f'Milvus连接成功 - {settings.milvus_host}:{settings.milvus_port}'
             )
             
         except Exception as e:
-            logger.error(f'向量数据库初始化失败: {e}')
-            raise KnowledgeBaseError(f'数据库初始化失败: {str(e)}')
+            logger.error(f'Milvus连接失败: {e}')
+            raise KnowledgeBaseError(f'Milvus连接失败: {str(e)}')
     
     def _initialize_embedding_model(self) -> None:
         """初始化文本向量化模型."""
@@ -78,11 +70,97 @@ class KnowledgeService:
             self.embedding_model = SentenceTransformer(
                 settings.embedding_model
             )
-            logger.info(f'向量化模型加载成功: {settings.embedding_model}')
+            # 获取向量维度
+            self.vector_dim = self.embedding_model.get_sentence_embedding_dimension()
+            logger.info(
+                f'向量化模型加载成功: {settings.embedding_model}, '
+                f'维度: {self.vector_dim}'
+            )
             
         except Exception as e:
             logger.error(f'向量化模型加载失败: {e}')
             raise KnowledgeBaseError(f'模型加载失败: {str(e)}')
+    
+    def _create_collection(self) -> None:
+        """创建或获取Milvus集合."""
+        try:
+            collection_name = 'knowledge_base'
+            
+            # 如果集合已存在，直接加载
+            if utility.has_collection(collection_name):
+                self.collection = Collection(collection_name)
+                self.collection.load()
+                logger.info(
+                    f'加载现有集合: {collection_name}, '
+                    f'文档数: {self.collection.num_entities}'
+                )
+                return
+            
+            # 定义字段
+            fields = [
+                FieldSchema(
+                    name='id',
+                    dtype=DataType.VARCHAR,
+                    max_length=100,
+                    is_primary=True,
+                ),
+                FieldSchema(
+                    name='content',
+                    dtype=DataType.VARCHAR,
+                    max_length=65535,
+                ),
+                FieldSchema(
+                    name='vector',
+                    dtype=DataType.FLOAT_VECTOR,
+                    dim=self.vector_dim,
+                ),
+                FieldSchema(
+                    name='category',
+                    dtype=DataType.VARCHAR,
+                    max_length=100,
+                ),
+                FieldSchema(
+                    name='created_at',
+                    dtype=DataType.VARCHAR,
+                    max_length=50,
+                ),
+                FieldSchema(
+                    name='chunk_index',
+                    dtype=DataType.INT64,
+                ),
+            ]
+            
+            # 创建schema
+            schema = CollectionSchema(
+                fields=fields,
+                description='企业知识库（多模态支持）',
+            )
+            
+            # 创建集合
+            self.collection = Collection(
+                name=collection_name,
+                schema=schema,
+            )
+            
+            # 创建索引
+            index_params = {
+                'metric_type': 'COSINE',  # 余弦相似度
+                'index_type': 'IVF_FLAT',
+                'params': {'nlist': 128},
+            }
+            self.collection.create_index(
+                field_name='vector',
+                index_params=index_params,
+            )
+            
+            # 加载集合到内存
+            self.collection.load()
+            
+            logger.info(f'创建新集合: {collection_name}')
+            
+        except Exception as e:
+            logger.error(f'创建集合失败: {e}')
+            raise KnowledgeBaseError(f'集合创建失败: {str(e)}')
     
     async def add_knowledge(
         self,
@@ -103,12 +181,6 @@ class KnowledgeService:
             # 生成文档ID
             doc_id = generate_doc_id(knowledge.content)
             
-            # 检查是否已存在
-            existing = self.collection.get(ids=[doc_id])
-            if existing['ids']:
-                logger.warning(f'文档已存在: {doc_id}')
-                return doc_id
-            
             # 文本分块（如果内容过长）
             chunks = split_text(
                 knowledge.content,
@@ -122,25 +194,28 @@ class KnowledgeService:
                 show_progress_bar=False,
             ).tolist()
             
-            # 准备元数据
-            metadata = {
-                'category': knowledge.category,
-                'created_at': datetime.now().isoformat(),
-                'chunk_count': len(chunks),
-                **(knowledge.metadata or {}),
-            }
+            # 准备数据
+            created_at = datetime.now().isoformat()
             
-            # 存入向量库
-            chunk_ids = [
-                f'{doc_id}_chunk_{i}' for i in range(len(chunks))
+            ids = [f'{doc_id}_chunk_{i}' for i in range(len(chunks))]
+            contents = chunks
+            vectors = embeddings
+            categories = [knowledge.category] * len(chunks)
+            created_ats = [created_at] * len(chunks)
+            chunk_indices = list(range(len(chunks)))
+            
+            # 插入数据
+            entities = [
+                ids,
+                contents,
+                vectors,
+                categories,
+                created_ats,
+                chunk_indices,
             ]
             
-            self.collection.add(
-                ids=chunk_ids,
-                embeddings=embeddings,
-                documents=chunks,
-                metadatas=[metadata] * len(chunks),
-            )
+            self.collection.insert(entities)
+            self.collection.flush()
             
             logger.info(
                 f'知识条目添加成功 - ID: {doc_id}, '
@@ -182,36 +257,50 @@ class KnowledgeService:
                 show_progress_bar=False,
             ).tolist()
             
-            # 构建过滤条件
-            where_filter = None
+            # 构建过滤表达式
+            expr = None
             if category:
-                where_filter = {'category': category}
+                expr = f'category == "{category}"'
+            
+            # 搜索参数
+            search_params = {
+                'metric_type': 'COSINE',
+                'params': {'nprobe': 10},
+            }
             
             # 执行检索
-            results = self.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=top_k,
-                where=where_filter,
+            results = self.collection.search(
+                data=[query_embedding],
+                anns_field='vector',
+                param=search_params,
+                limit=top_k,
+                expr=expr,
+                output_fields=['content', 'category', 'created_at'],
             )
             
             # 解析结果
             search_results = []
             
-            if results['ids'] and results['ids'][0]:
-                for i, doc_id in enumerate(results['ids'][0]):
-                    content = results['documents'][0][i]
-                    metadata = results['metadatas'][0][i]
-                    distance = results['distances'][0][i]
+            if results and len(results) > 0:
+                for hit in results[0]:
+                    # Milvus返回的距离是余弦距离，需要转换为相似度
+                    # 余弦相似度 = 1 - 余弦距离
+                    score = 1.0 - hit.distance
                     
-                    # 距离转换为相似度分数（0-1）
-                    score = max(0.0, 1.0 - distance)
+                    # 获取entity数据
+                    content = hit.entity.content if hasattr(hit.entity, 'content') else ''
+                    category = hit.entity.category if hasattr(hit.entity, 'category') else '未分类'
+                    created_at = hit.entity.created_at if hasattr(hit.entity, 'created_at') else ''
                     
                     search_results.append(
                         KnowledgeSearchResult(
                             content=content,
-                            category=metadata.get('category', '未分类'),
-                            score=round(score, 4),
-                            metadata=metadata,
+                            category=category,
+                            score=round(max(0.0, score), 4),
+                            metadata={
+                                'created_at': created_at,
+                                'id': hit.id,
+                            },
                         )
                     )
             
@@ -239,21 +328,13 @@ class KnowledgeService:
             是否删除成功
         """
         try:
-            # 查找所有相关分块
-            all_docs = self.collection.get()
-            chunk_ids = [
-                id for id in all_docs['ids']
-                if id.startswith(doc_id)
-            ]
+            # 构建删除表达式（删除所有相关分块）
+            expr = f'id like "{doc_id}%"'
             
-            if not chunk_ids:
-                logger.warning(f'文档不存在: {doc_id}')
-                return False
+            self.collection.delete(expr)
+            self.collection.flush()
             
-            # 删除所有分块
-            self.collection.delete(ids=chunk_ids)
-            
-            logger.info(f'知识条目删除成功 - ID: {doc_id}, 删除分块: {len(chunk_ids)}')
+            logger.info(f'知识条目删除成功 - ID: {doc_id}')
             return True
             
         except Exception as e:
@@ -267,7 +348,7 @@ class KnowledgeService:
             条目数量
         """
         try:
-            return self.collection.count()
+            return self.collection.num_entities
         except Exception as e:
             logger.error(f'获取知识库数量失败: {e}')
             return 0
@@ -280,13 +361,10 @@ class KnowledgeService:
         """
         try:
             # 删除集合
-            self.client.delete_collection(name='knowledge_base')
+            utility.drop_collection('knowledge_base')
             
             # 重新创建
-            self.collection = self.client.get_or_create_collection(
-                name='knowledge_base',
-                metadata={'description': '企业知识库'},
-            )
+            self._create_collection()
             
             logger.warning('知识库已清空')
             return True
@@ -294,4 +372,3 @@ class KnowledgeService:
         except Exception as e:
             logger.error(f'清空知识库失败: {e}')
             raise KnowledgeBaseError(f'清空失败: {str(e)}')
-
