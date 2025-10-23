@@ -1,0 +1,27 @@
+# 阿里云配置
+DASHSCOPE_API_KEY=sk-8b6db5929e244a159deb8e77b08bcf5b
+
+# 应用配置
+APP_NAME=AI-RAG-Service
+APP_VERSION=1.0.0
+DEBUG=True
+
+# 服务器配置
+HOST=0.0.0.0
+PORT=8000
+
+# 向量数据库配置
+VECTOR_DB_PATH=./data/chroma_db
+EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+
+# 大模型配置
+DEFAULT_LLM_MODEL=qwen-max
+DEFAULT_VL_MODEL=qwen-vl-max
+MAX_TOKENS=2000
+TEMPERATURE=0.7
+
+# 知识库配置
+KNOWLEDGE_TOP_K=3
+CHUNK_SIZE=500
+CHUNK_OVERLAP=50
+
