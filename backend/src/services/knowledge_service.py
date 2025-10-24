@@ -188,9 +188,10 @@ class KnowledgeService:
                 chunk_overlap=settings.chunk_overlap,
             )
             
-            # 向量化
+            # 向量化（使用normalize确保向量归一化，优化相似度计算）
             embeddings = self.embedding_model.encode(
                 chunks,
+                normalize_embeddings=True,
                 show_progress_bar=False,
             ).tolist()
             
@@ -251,9 +252,10 @@ class KnowledgeService:
             VectorSearchError: 检索失败时抛出
         """
         try:
-            # 向量化查询
+            # 向量化查询（使用normalize确保向量归一化，优化相似度计算）
             query_embedding = self.embedding_model.encode(
                 query,
+                normalize_embeddings=True,
                 show_progress_bar=False,
             ).tolist()
             
@@ -283,9 +285,9 @@ class KnowledgeService:
             
             if results and len(results) > 0:
                 for hit in results[0]:
-                    # Milvus返回的距离是余弦距离，需要转换为相似度
-                    # 余弦相似度 = 1 - 余弦距离
-                    score = 1.0 - hit.distance
+                    # Milvus使用COSINE metric_type时，返回的是相似度(0-1)，不是距离
+                    # 无需转换，直接使用
+                    score = hit.distance
                     
                     # 获取entity数据
                     content = hit.entity.content if hasattr(hit.entity, 'content') else ''
