@@ -1,5 +1,5 @@
 # 阿里云配置
-DASHSCOPE_API_KEY=sk-8b6db5929e244a159deb8e77b08bcf5b
+DASHSCOPE_API_KEY=your-dashscope-api-key-here
 
 # 应用配置
 APP_NAME=AI-RAG-Service
@@ -12,7 +12,7 @@ PORT=8000
 
 # 向量数据库配置
 VECTOR_DB_PATH=./data/chroma_db
-EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+EMBEDDING_MODEL=BAAI/bge-large-zh-v1.5
 
 # 大模型配置
 DEFAULT_LLM_MODEL=qwen-max

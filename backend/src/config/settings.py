@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # 向量数据库配置（Milvus）
     milvus_host: str = 'localhost'
     milvus_port: int = 19530
-    embedding_model: str = 'paraphrase-multilingual-MiniLM-L12-v2'
+    embedding_model: str = 'BAAI/bge-large-zh-v1.5'  # 中文检索优化模型
     
     # 大模型配置
     default_llm_model: str = 'qwen-max'

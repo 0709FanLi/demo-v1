@@ -121,7 +121,7 @@ pip install -r requirements.txt
 
 ```bash
 # 环境变量配置
-DASHSCOPE_API_KEY=sk-8b6db5929e244a159deb8e77b08bcf5b
+DASHSCOPE_API_KEY=your-api-key-here
 APP_NAME=AI-RAG-Service
 DEBUG=True
 HOST=0.0.0.0

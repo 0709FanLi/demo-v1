@@ -52,10 +52,14 @@ logs/
 backend/backend.log
 frontend/frontend.log
 
-# Environment
+# Environment - 敏感配置文件
 .env
 .env.local
 .env.*.local
+*.env
+env_template.txt
+env.production.template
+.env.production
 
 # Docker volumes - 这是关键！
 volumes/
