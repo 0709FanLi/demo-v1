@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     knowledge_top_k: int = 3
     chunk_size: int = 500
     chunk_overlap: int = 50
+    knowledge_relevance_threshold: float = 0.60  # 知识库相似度阈值（0-1），低于此值视为超出范围
     
     model_config = SettingsConfigDict(
         env_file='env_template.txt',

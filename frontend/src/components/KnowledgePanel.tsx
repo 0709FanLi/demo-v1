@@ -18,7 +18,7 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
   onSuccess,
 }) => {
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState('通用');
+  const [category, setCategory] = useState('NAD+与抗衰老');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +42,7 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
 
       // 重置表单
       setContent('');
-      setCategory('通用');
+      setCategory('NAD+与抗衰老');
 
       onSuccess();
     } catch (error: any) {
@@ -56,7 +56,7 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
   return (
     <div className={`knowledge-panel ${isOpen ? 'open' : ''}`}>
       <div className="panel-header">
-        <h2 className="panel-title">添加知识</h2>
+        <h2 className="panel-title">🧬 添加抗衰老知识</h2>
         <button className="close-btn" onClick={onClose}>
           ×
         </button>
@@ -65,23 +65,23 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
       <div className="panel-content">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">知识分类</label>
+            <label className="form-label">🏷️ 知识分类</label>
             <input
               type="text"
               className="form-input"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="例如：产品介绍、售后政策"
+              placeholder="例如：NAD+与抗衰老、NMN补充指南、线粒体健康"
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">知识内容 *</label>
+            <label className="form-label">📝 知识内容 *</label>
             <textarea
               className="form-textarea"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="请输入知识内容，支持多行文本..."
+              placeholder="请输入抗衰老相关的科学知识，建议包含研究来源、具体建议和注意事项..."
               required
             />
           </div>
@@ -95,13 +95,14 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', padding: '16px', background: '#f5f5f5', borderRadius: '8px' }}>
-          <h3 style={{ fontSize: '14px', marginBottom: '8px' }}>💡 使用提示</h3>
-          <ul style={{ fontSize: '12px', color: '#666', lineHeight: '1.6', paddingLeft: '20px' }}>
-            <li>添加的知识会被用于RAG对话</li>
-            <li>建议按主题分类，便于管理</li>
-            <li>内容应准确、完整、易懂</li>
-            <li>支持批量添加（API接口）</li>
+        <div style={{ marginTop: '24px', padding: '16px', background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', borderRadius: '8px', border: '1px solid #10b981' }}>
+          <h3 style={{ fontSize: '14px', marginBottom: '8px', color: '#047857', fontWeight: 'bold' }}>💡 知识添加建议</h3>
+          <ul style={{ fontSize: '12px', color: '#065f46', lineHeight: '1.8', paddingLeft: '20px' }}>
+            <li>📚 <strong>引用来源</strong>：注明研究出处（如 Nature, Cell 等）</li>
+            <li>💊 <strong>具体建议</strong>：包含剂量、时间、使用方法</li>
+            <li>⚠️ <strong>安全提醒</strong>：说明副作用和注意事项</li>
+            <li>🎯 <strong>分类清晰</strong>：便于专业知识检索</li>
+            <li>🔬 <strong>科学严谨</strong>：基于循证医学证据</li>
           </ul>
         </div>
       </div>

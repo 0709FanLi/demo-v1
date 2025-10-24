@@ -126,6 +126,27 @@ export const getKnowledgeCount = async (): Promise<{ total: number; message: str
 };
 
 /**
+ * 获取知识库列表
+ */
+export const getKnowledgeList = async (
+  limit: number = 100,
+  offset: number = 0
+): Promise<any[]> => {
+  const response = await apiClient.get('/api/v1/knowledge/list', {
+    params: { limit, offset },
+  });
+  return response.data;
+};
+
+/**
+ * 删除知识条目
+ */
+export const deleteKnowledge = async (docId: string): Promise<any> => {
+  const response = await apiClient.delete(`/api/v1/knowledge/delete/${docId}`);
+  return response.data;
+};
+
+/**
  * 健康检查
  */
 export const healthCheck = async (): Promise<any> => {

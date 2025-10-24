@@ -83,6 +83,14 @@ class ChatResponse(BaseModel):
     )
     llm_model: str = Field(..., description='使用的模型')
     has_image: bool = Field(default=False, description='是否包含图片')
+    out_of_scope: bool = Field(
+        default=False,
+        description='问题是否超出知识库范围',
+    )
+    relevance_score: Optional[float] = Field(
+        default=None,
+        description='知识库相关性评分（0-1）',
+    )
     
     model_config = {
         'protected_namespaces': (),  # 允许model_开头的字段

@@ -342,16 +342,68 @@ class KnowledgeService:
             raise KnowledgeBaseError(f'删除失败: {str(e)}')
     
     async def get_knowledge_count(self) -> int:
-        """获取知识库条目总数.
+        """获取知识库条目总数（不包括分块）.
         
         Returns:
-            条目数量
+            条目数量（只计算 chunk_index == 0 的记录）
         """
         try:
-            return self.collection.num_entities
+            # 只统计第一个分块的数量，避免重复计数
+            results = self.collection.query(
+                expr='chunk_index == 0',
+                output_fields=['id'],
+                limit=10000,  # 设置一个足够大的限制
+            )
+            count = len(results)
+            logger.info(f'知识库条目数: {count}（总分块数: {self.collection.num_entities}）')
+            return count
         except Exception as e:
             logger.error(f'获取知识库数量失败: {e}')
             return 0
+    
+    async def get_all_knowledge(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[KnowledgeSearchResult]:
+        """获取所有知识条目.
+        
+        Args:
+            limit: 返回数量限制
+            offset: 偏移量
+            
+        Returns:
+            知识条目列表
+        """
+        try:
+            # 查询所有记录
+            results = self.collection.query(
+                expr='chunk_index == 0',  # 只获取第一个分块（避免重复）
+                output_fields=['content', 'category', 'created_at', 'id'],
+                limit=limit,
+                offset=offset,
+            )
+            
+            knowledge_list = []
+            for result in results:
+                knowledge_list.append(
+                    KnowledgeSearchResult(
+                        content=result.get('content', ''),
+                        category=result.get('category', '未分类'),
+                        score=1.0,  # 不是搜索结果，没有相似度
+                        metadata={
+                            'created_at': result.get('created_at', ''),
+                            'id': result.get('id', ''),
+                        },
+                    )
+                )
+            
+            logger.info(f'获取知识列表成功 - 返回: {len(knowledge_list)} 条')
+            return knowledge_list
+            
+        except Exception as e:
+            logger.error(f'获取知识列表失败: {e}')
+            return []
     
     async def clear_all(self) -> bool:
         """清空知识库（谨慎使用）.

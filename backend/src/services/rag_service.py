@@ -17,21 +17,24 @@ from .aliyun_service import AliyunService
 
 
 # 结构化提示词模板
-PROMPT_TEMPLATE = """你是一个专业、友好的智能助手。请严格遵守以下规则：
+PROMPT_TEMPLATE = """你是一位资深的抗衰老领域专家。请严格遵守以下规则：
 
 【角色定位】
-- 你是企业的官方客服助手
-- 回答要准确、专业、有礼貌
-- 如果不确定，诚实告知用户
+- 你是一位在抗衰老、健康管理和长寿科学领域有多年研究和实践经验的专家
+- 你精通细胞生物学、营养学、运动科学、再生医学等与抗衰老相关的专业知识
+- 你的回答要基于科学证据和最新研究成果，专业、严谨、可信
+- 你可以提供个性化的抗衰老建议，但要明确指出这不是医疗诊断，建议咨询专业医生
 
 【知识库参考】
 {knowledge_context}
 
 【回答要求】
-1. **必须优先基于【知识库参考】中的内容回答**
-2. 如果知识库中没有相关信息，可以基于常识回答，但要说明"这不是官方信息"
-3. 回答要简洁明了，避免冗长
-4. 如果用户问题不清楚，引导用户补充信息
+1. **必须优先基于【知识库参考】中的科学文献和专业资料回答**
+2. 引用知识库内容时，要说明研究来源或科学依据
+3. 如果知识库中没有相关信息，可以基于专业知识回答，但要明确说明"这是基于通用的抗衰老科学知识"
+4. 回答要兼顾专业性和易理解性，适当使用类比和实例
+5. 涉及具体的营养补充剂、药物或医疗方案时，务必提醒用户咨询专业医生
+6. 如果用户问题不够具体，引导用户提供更多信息（如年龄、健康状况、生活方式等）
 
 【用户问题】
 {user_question}
@@ -39,7 +42,7 @@ PROMPT_TEMPLATE = """你是一个专业、友好的智能助手。请严格遵�
 【历史对话】
 {history_context}
 
-请直接回答用户问题，不要重复上述规则。
+请以专家的角度回答用户问题，提供科学、实用的抗衰老建议。
 """
 
 
@@ -84,6 +87,8 @@ class RAGService:
             # 步骤1: 检索知识库
             knowledge_sources = []
             knowledge_context = '暂无相关知识库信息。'
+            max_relevance_score = 0.0
+            is_out_of_scope = False
             
             if request.use_knowledge_base:
                 search_results = await self.knowledge_service.search_knowledge(
@@ -92,22 +97,54 @@ class RAGService:
                 )
                 
                 if search_results:
-                    knowledge_sources = [
-                        f'{result.content[:100]}...' 
-                        for result in search_results
-                    ]
+                    # 获取最高相似度
+                    max_relevance_score = search_results[0].score
                     
-                    knowledge_context = '\n\n'.join([
-                        f'[知识{i+1}] (相似度: {result.score:.2f})\n{result.content}'
-                        for i, result in enumerate(search_results)
-                    ])
-                    
-                    logger.info(
-                        f'检索到 {len(search_results)} 条相关知识, '
-                        f'最高相似度: {search_results[0].score:.2f}'
-                    )
+                    # 判断是否超出知识库范围
+                    if max_relevance_score < settings.knowledge_relevance_threshold:
+                        is_out_of_scope = True
+                        logger.info(
+                            f'问题超出知识库范围 - 最高相似度: {max_relevance_score:.2f}, '
+                            f'阈值: {settings.knowledge_relevance_threshold}'
+                        )
+                    else:
+                        knowledge_sources = [
+                            f'{result.content[:100]}...' 
+                            for result in search_results
+                        ]
+                        
+                        knowledge_context = '\n\n'.join([
+                            f'[知识{i+1}] (相似度: {result.score:.2f})\n{result.content}'
+                            for i, result in enumerate(search_results)
+                        ])
+                        
+                        logger.info(
+                            f'检索到 {len(search_results)} 条相关知识, '
+                            f'最高相似度: {max_relevance_score:.2f}'
+                        )
+                else:
+                    # 没有检索结果，也视为超出范围
+                    is_out_of_scope = True
+                    logger.info('知识库检索无结果，视为超出范围')
             
-            # 步骤2: 构建历史对话上下文
+            # 步骤2: 如果超出范围，直接返回友好提示
+            if is_out_of_scope:
+                out_of_scope_message = self._generate_out_of_scope_message(
+                    question=request.question,
+                    max_score=max_relevance_score,
+                )
+                
+                return ChatResponse(
+                    answer=out_of_scope_message,
+                    confidence='低',
+                    knowledge_sources=[],
+                    llm_model='out_of_scope',
+                    has_image=False,
+                    out_of_scope=True,
+                    relevance_score=max_relevance_score,
+                )
+            
+            # 步骤3: 构建历史对话上下文
             history_context = '这是首次对话。'
             if request.history:
                 history_parts = []
@@ -116,14 +153,14 @@ class RAGService:
                     history_parts.append(f'{role_name}: {msg.content}')
                 history_context = '\n'.join(history_parts)
             
-            # 步骤3: 填充提示词模板
+            # 步骤4: 填充提示词模板
             full_prompt = PROMPT_TEMPLATE.format(
                 knowledge_context=knowledge_context,
                 user_question=request.question,
                 history_context=history_context,
             )
             
-            # 步骤4: 调用大模型
+            # 步骤5: 调用大模型
             has_image = bool(request.image_url or request.image_base64)
             
             if has_image:
@@ -141,7 +178,7 @@ class RAGService:
                 answer = await self.aliyun_service.chat(messages)
                 model_used = settings.default_llm_model
             
-            # 步骤5: 评估置信度
+            # 步骤6: 评估置信度
             confidence = self._evaluate_confidence(
                 answer=answer,
                 knowledge_found=bool(knowledge_sources),
@@ -154,6 +191,8 @@ class RAGService:
                 knowledge_sources=knowledge_sources,
                 llm_model=model_used,
                 has_image=has_image,
+                out_of_scope=False,
+                relevance_score=max_relevance_score,
             )
             
             logger.info(
@@ -172,7 +211,47 @@ class RAGService:
                 knowledge_sources=[],
                 llm_model='error',
                 has_image=False,
+                out_of_scope=False,
+                relevance_score=None,
             )
+    
+    def _generate_out_of_scope_message(
+        self,
+        question: str,
+        max_score: float,
+    ) -> str:
+        """生成超出知识库范围的友好提示.
+        
+        Args:
+            question: 用户问题
+            max_score: 最高相似度分数
+            
+        Returns:
+            友好的提示消息
+        """
+        message = f"""抱歉，您的问题似乎超出了我的专业知识库范围。
+
+📚 **我的专业领域**
+我目前专注于以下领域的专业咨询：
+• 抗衰老科学与策略
+• 健康管理与长寿研究  
+• 细胞生物学与再生医学
+• 营养学与运动科学
+• 衰老相关的医学研究
+
+💡 **建议您**
+1. 咨询相关领域的专业医生或专家
+2. 重新描述问题，看是否与抗衰老健康相关
+3. 查看我的知识库涵盖范围
+
+❓ **您的问题**: {question}
+
+如果您认为这个问题应该属于我的专业范围，请尝试换个方式提问，或提供更多背景信息。
+
+---
+相关性评分: {max_score:.2f} / 阈值: {settings.knowledge_relevance_threshold}"""
+        
+        return message
     
     def _evaluate_confidence(
         self,

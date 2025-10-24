@@ -212,6 +212,38 @@ async def get_knowledge_count(
     }
 
 
+@router.get(
+    '/list',
+    response_model=List[KnowledgeSearchResult],
+    summary='获取知识库列表',
+    description='获取所有知识条目列表',
+)
+async def get_knowledge_list(
+    limit: int = 100,
+    offset: int = 0,
+    service: KnowledgeService = Depends(get_knowledge_service),
+) -> List[KnowledgeSearchResult]:
+    """获取知识库列表.
+    
+    Args:
+        limit: 返回数量限制
+        offset: 偏移量
+        service: 知识库服务
+        
+    Returns:
+        知识条目列表
+    """
+    try:
+        results = await service.get_all_knowledge(limit=limit, offset=offset)
+        return results
+    except Exception as e:
+        logger.error(f'获取知识列表失败: {e}')
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'获取失败: {str(e)}',
+        )
+
+
 @router.delete(
     '/clear',
     response_model=KnowledgeResponse,
