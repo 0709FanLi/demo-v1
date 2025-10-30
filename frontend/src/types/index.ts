@@ -38,6 +38,46 @@ export interface ChatResponse {
 export interface KnowledgeItem {
   content: string;
   category: string;
+  title?: string;
+  tags?: string[];
+  metadata?: Record<string, any>;
+}
+
+// 知识库搜索结果
+export interface KnowledgeSearchResult {
+  content: string;
+  category: string;
+  score: number;
+  metadata: {
+    created_at?: string;
+    id?: string;
+    [key: string]: any;
+  };
+}
+
+// 知识库详情
+export interface KnowledgeDetail {
+  doc_id: string;
+  content: string;
+  category: string;
+  title?: string;
+  tags?: string[];
+  created_at: string;
+  updated_at?: string;
+  metadata: Record<string, any>;
+  chunks: Array<{
+    chunk_index: number;
+    content: string;
+    id: string;
+  }>;
+}
+
+// 知识库更新请求
+export interface KnowledgeUpdate {
+  content?: string;
+  category?: string;
+  title?: string;
+  tags?: string[];
   metadata?: Record<string, any>;
 }
 

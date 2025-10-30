@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { addKnowledge } from '../services/api';
 import { KnowledgeItem } from '../types';
+import { useMessage } from './common/Message';
 
 interface KnowledgePanelProps {
   isOpen: boolean;
@@ -20,12 +21,14 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('NAD+与抗衰老');
   const [loading, setLoading] = useState(false);
+  
+  const { showSuccess, showError, MessageContainer } = useMessage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!content.trim()) {
-      alert('请输入知识内容');
+      showError('请输入知识内容');
       return;
     }
 
@@ -38,7 +41,7 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
       };
 
       await addKnowledge(knowledge);
-      alert('知识添加成功！');
+      showSuccess('知识添加成功！');
 
       // 重置表单
       setContent('');
@@ -47,7 +50,7 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
       onSuccess();
     } catch (error: any) {
       console.error('添加知识失败:', error);
-      alert(`添加失败: ${error.response?.data?.detail || error.message}`);
+      showError(`添加失败: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -106,6 +109,7 @@ const KnowledgePanel: React.FC<KnowledgePanelProps> = ({
           </ul>
         </div>
       </div>
+      <MessageContainer />
     </div>
   );
 };

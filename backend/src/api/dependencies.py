@@ -6,13 +6,14 @@
 
 from typing import Generator
 
-from ..services import KnowledgeService, AliyunService, RAGService
+from ..services import KnowledgeService, AliyunService, RAGService, ImportExportService
 
 
 # 服务实例缓存
 _knowledge_service: KnowledgeService = None
 _aliyun_service: AliyunService = None
 _rag_service: RAGService = None
+_import_export_service: ImportExportService = None
 
 
 def get_knowledge_service() -> KnowledgeService:
@@ -52,4 +53,16 @@ def get_rag_service() -> RAGService:
             aliyun_service=get_aliyun_service(),
         )
     return _rag_service
+
+
+def get_import_export_service() -> ImportExportService:
+    """获取导入导出服务实例（单例）.
+    
+    Returns:
+        导入导出服务实例
+    """
+    global _import_export_service
+    if _import_export_service is None:
+        _import_export_service = ImportExportService()
+    return _import_export_service
 

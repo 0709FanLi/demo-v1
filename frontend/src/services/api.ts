@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import { ChatRequest, ChatResponse, KnowledgeItem } from '../types';
+import { ChatRequest, ChatResponse, KnowledgeItem, KnowledgeDetail, KnowledgeUpdate } from '../types';
 
 // API基础URL（可通过环境变量配置）
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
@@ -139,10 +139,52 @@ export const getKnowledgeList = async (
 };
 
 /**
+ * 获取知识详情
+ */
+export const getKnowledgeDetail = async (docId: string): Promise<KnowledgeDetail> => {
+  const response = await apiClient.get<KnowledgeDetail>(`/api/v1/knowledge/${docId}`);
+  return response.data;
+};
+
+/**
+ * 更新知识条目
+ */
+export const updateKnowledge = async (
+  docId: string,
+  updateData: KnowledgeUpdate
+): Promise<any> => {
+  const response = await apiClient.put(`/api/v1/knowledge/${docId}`, updateData);
+  return response.data;
+};
+
+/**
  * 删除知识条目
  */
 export const deleteKnowledge = async (docId: string): Promise<any> => {
   const response = await apiClient.delete(`/api/v1/knowledge/delete/${docId}`);
+  return response.data;
+};
+
+/**
+ * 导入知识库文件
+ */
+export const importKnowledge = async (
+  file: File,
+  format?: string,
+  defaultCategory: string = '未分类'
+): Promise<any> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (format) {
+    formData.append('format', format);
+  }
+  formData.append('default_category', defaultCategory);
+
+  const response = await apiClient.post('/api/v1/knowledge/import', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 

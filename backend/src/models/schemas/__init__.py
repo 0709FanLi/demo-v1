@@ -3,8 +3,14 @@
 from .knowledge import (
     KnowledgeBase,
     KnowledgeCreate,
+    KnowledgeUpdate,
     KnowledgeResponse,
     KnowledgeSearchResult,
+    KnowledgeDetail,
+    PaginatedKnowledgeResponse,
+    KnowledgeListResponse,
+    ImportResult,
+    ImportErrorDetail,
 )
 from .chat import (
     ChatRequest,
@@ -15,8 +21,14 @@ from .chat import (
 __all__ = [
     'KnowledgeBase',
     'KnowledgeCreate',
+    'KnowledgeUpdate',
     'KnowledgeResponse',
     'KnowledgeSearchResult',
+    'KnowledgeDetail',
+    'PaginatedKnowledgeResponse',
+    'KnowledgeListResponse',
+    'ImportResult',
+    'ImportErrorDetail',
     'ChatRequest',
     'ChatResponse',
     'Message',

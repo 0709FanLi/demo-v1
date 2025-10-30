@@ -4,6 +4,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { getKnowledgeList, deleteKnowledge } from '../services/api';
+import ConfirmDialog from './common/ConfirmDialog';
+import { useMessage } from './common/Message';
 
 interface KnowledgeListModalProps {
   isOpen: boolean;
@@ -29,6 +31,12 @@ const KnowledgeListModal: React.FC<KnowledgeListModalProps> = ({
   const [knowledgeList, setKnowledgeList] = useState<KnowledgeItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; docId: string | null }>({
+    isOpen: false,
+    docId: null,
+  });
+  
+  const { showSuccess, showError, MessageContainer } = useMessage();
 
   useEffect(() => {
     if (isOpen) {
@@ -43,26 +51,34 @@ const KnowledgeListModal: React.FC<KnowledgeListModalProps> = ({
       setKnowledgeList(data);
     } catch (error) {
       console.error('加载知识列表失败:', error);
-      alert('加载知识列表失败，请稍后重试');
+      showError('加载知识列表失败，请稍后重试');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (docId: string) => {
-    if (!window.confirm('确定要删除这条知识吗？')) {
-      return;
-    }
+  const handleDeleteClick = (docId: string) => {
+    setDeleteConfirm({ isOpen: true, docId });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.docId) return;
 
     try {
-      await deleteKnowledge(docId);
-      alert('删除成功！');
+      await deleteKnowledge(deleteConfirm.docId);
+      showSuccess('知识删除成功！');
       loadKnowledgeList();
       if (onRefresh) onRefresh();
+      setDeleteConfirm({ isOpen: false, docId: null });
     } catch (error) {
       console.error('删除失败:', error);
-      alert('删除失败，请稍后重试');
+      showError('删除失败，请稍后重试');
+      setDeleteConfirm({ isOpen: false, docId: null });
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ isOpen: false, docId: null });
   };
 
   const toggleExpand = (id: string) => {
@@ -238,7 +254,7 @@ const KnowledgeListModal: React.FC<KnowledgeListModalProps> = ({
                         </div>
                       </div>
                       <button
-                        onClick={() => handleDelete(item.metadata.id.split('_chunk_')[0])}
+                        onClick={() => handleDeleteClick(item.metadata.id.split('_chunk_')[0])}
                         style={{
                           background: 'rgba(239, 68, 68, 0.8)',
                           border: 'none',
@@ -251,9 +267,11 @@ const KnowledgeListModal: React.FC<KnowledgeListModalProps> = ({
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = 'rgba(239, 68, 68, 1)';
+                          e.currentTarget.style.transform = 'scale(1.05)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)';
+                          e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
                         🗑️ 删除
@@ -345,6 +363,19 @@ const KnowledgeListModal: React.FC<KnowledgeListModalProps> = ({
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="确认删除"
+        message="确定要删除这条知识吗？删除后无法恢复。"
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        type="danger"
+      />
+
+      <MessageContainer />
     </div>
   );
 };
