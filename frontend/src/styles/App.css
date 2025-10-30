@@ -3,9 +3,11 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* 使用动态视口高度，避免移动端浏览器UI影响 */
   /* 渐变色：生命绿 → 科技蓝 */
   background: linear-gradient(135deg, #10b981 0%, #059669 50%, #0891b2 100%);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* 头部 */
@@ -43,9 +45,11 @@
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  padding-bottom: 10px; /* 减少底部 padding，为输入框留出空间 */
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0; /* 确保 flex 子元素可以正确缩小 */
 }
 
 /* 消息气泡 */
@@ -162,14 +166,28 @@
 /* 输入区域 */
 .input-container {
   background: white;
-  padding: 16px 20px;
+  padding: 16px 0; /* 上下 padding，左右设为 0，由 input-wrapper 控制 */
+  padding-bottom: max(16px, env(safe-area-inset-bottom)); /* 考虑安全区域 */
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* 防止输入框被压缩 */
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 水平居中 */
 }
 
 .input-wrapper {
   display: flex;
   gap: 8px;
   align-items: flex-end;
+  width: 100%;
+  max-width: 1200px; /* 设置最大宽度，避免过宽 */
+  margin: 0 auto; /* 水平居中 */
+  padding: 0 20px; /* 左右留白 */
+  box-sizing: border-box;
 }
 
 .image-preview-container {
@@ -231,6 +249,8 @@
 .textarea-wrapper {
   flex: 1;
   position: relative;
+  max-width: 100%;
+  min-width: 0; /* 允许 flex 子元素缩小 */
 }
 
 .message-input {

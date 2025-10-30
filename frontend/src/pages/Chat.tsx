@@ -1,12 +1,14 @@
 /**
- * RAG 对话页面组件
+ * RAG 对话页面组件 - 重构版
+ * 现代化的对话界面设计
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { chatWithRAG, chatWithImage, getKnowledgeCount } from '../services/api';
 import { Message, ChatRequest } from '../types';
 import KnowledgePanel from '../components/KnowledgePanel';
 import KnowledgeListModal from '../components/KnowledgeListModal';
-import '../styles/App.css';
+import { useMessage } from '../components/common/Message';
+import '../styles/Chat.css';
 
 interface ChatProps {
   onKnowledgeCountChange?: (count: number) => void;
@@ -24,6 +26,7 @@ const Chat: React.FC<ChatProps> = ({ onKnowledgeCountChange }) => {
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showError, MessageContainer } = useMessage();
 
   // 加载知识库统计
   useEffect(() => {
@@ -35,7 +38,7 @@ const Chat: React.FC<ChatProps> = ({ onKnowledgeCountChange }) => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   const loadKnowledgeCount = async () => {
     try {
@@ -116,6 +119,7 @@ const Chat: React.FC<ChatProps> = ({ onKnowledgeCountChange }) => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error('对话失败:', error);
+      showError(`对话失败: ${error.response?.data?.detail || error.message}`);
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
@@ -137,96 +141,124 @@ const Chat: React.FC<ChatProps> = ({ onKnowledgeCountChange }) => {
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1 className="app-title">🧬 抗衰老专家咨询</h1>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span
-            className="knowledge-status"
-            onClick={() => setShowKnowledgeListModal(true)}
-            style={{ cursor: 'pointer' }}
-            title="点击查看知识库内容"
-          >
-            📚 知识库: {knowledgeCount} 条
-          </span>
+    <div className="chat-page">
+      {/* 顶部工具栏 */}
+      <div className="chat-toolbar">
+        <div className="toolbar-left">
+          <div className="toolbar-title">
+            <span className="toolbar-icon">🧬</span>
+            <span>抗衰老专家咨询</span>
+          </div>
+        </div>
+        <div className="toolbar-right">
           <button
-            onClick={() => setShowKnowledgePanel(true)}
-            style={{
-              padding: '6px 12px',
-              background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              boxShadow: '0 2px 4px rgba(34, 197, 94, 0.2)',
-            }}
+            className="toolbar-btn knowledge-btn"
+            onClick={() => setShowKnowledgeListModal(true)}
+            title="查看知识库"
           >
-            ➕ 添加知识
+            <span>📚</span>
+            <span>知识库: {knowledgeCount} 条</span>
+          </button>
+          <button
+            className="toolbar-btn add-btn"
+            onClick={() => setShowKnowledgePanel(true)}
+            title="添加知识"
+          >
+            <span>➕</span>
+            <span>添加知识</span>
           </button>
         </div>
-      </header>
+      </div>
 
-      <div className="chat-container" ref={chatContainerRef}>
+      {/* 聊天消息区域 */}
+      <div className="chat-messages" ref={chatContainerRef}>
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'white', marginTop: '50px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🧬</div>
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '12px' }}>
-              您好！我是抗衰老领域专家
-            </h2>
-            <p style={{ marginTop: '16px', opacity: 0.95, fontSize: '16px', lineHeight: '1.6' }}>
-              我精通细胞生物学、营养学、运动科学和再生医学<br />
+          <div className="welcome-screen">
+            <div className="welcome-icon">🧬</div>
+            <h2 className="welcome-title">您好！我是抗衰老领域专家</h2>
+            <p className="welcome-subtitle">
+              我精通细胞生物学、营养学、运动科学和再生医学
+              <br />
               可以为您提供基于科学证据的抗衰老建议和健康管理方案
             </p>
+            <div className="welcome-features">
+              <div className="feature-item">
+                <span className="feature-icon">🔬</span>
+                <span>科学严谨</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">💊</span>
+                <span>个性化建议</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">📊</span>
+                <span>数据分析</span>
+              </div>
+            </div>
           </div>
         )}
 
         {messages.map((message) => (
-          <div key={message.id} className={`message-wrapper ${message.role}`}>
-            <div className={`message-bubble ${message.role}`}>
-              {message.imageUrl && (
-                <img src={message.imageUrl} alt="用户上传" className="message-image" />
-              )}
-              <div>{message.content}</div>
-              {message.role === 'assistant' && (
-                <div className="message-meta">
-                  {message.confidence && (
-                    <span className={`confidence-badge confidence-${message.confidence}`}>
-                      {message.confidence}
+          <div key={message.id} className={`message-item ${message.role}`}>
+            <div className="message-avatar">
+              {message.role === 'user' ? '👤' : '🧬'}
+            </div>
+            <div className="message-content-wrapper">
+              <div className={`message-bubble ${message.role}`}>
+                {message.imageUrl && (
+                  <div className="message-image-container">
+                    <img src={message.imageUrl} alt="用户上传" className="message-image" />
+                  </div>
+                )}
+                <div className="message-text">{message.content}</div>
+                {message.role === 'assistant' && (
+                  <div className="message-footer">
+                    {message.confidence && (
+                      <span className={`confidence-badge confidence-${message.confidence}`}>
+                        {message.confidence}置信度
+                      </span>
+                    )}
+                    <span className="message-time">
+                      {new Date(message.timestamp).toLocaleTimeString('zh-CN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </span>
-                  )}
-                  <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}
 
         {loading && (
-          <div className="message-wrapper assistant">
-            <div className="message-bubble assistant">
-              <div className="loading-message">
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
-                <div className="loading-dot"></div>
+          <div className="message-item assistant">
+            <div className="message-avatar">🧬</div>
+            <div className="message-content-wrapper">
+              <div className="message-bubble assistant loading-bubble">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="input-container">
+      {/* 输入区域 */}
+      <div className="chat-input-area">
         {imagePreview && (
-          <div className="image-preview-container">
-            <img src={imagePreview} alt="预览" className="image-preview" />
-            <button className="remove-image-btn" onClick={handleRemoveImage}>
+          <div className="image-preview-wrapper">
+            <img src={imagePreview} alt="预览" className="preview-image" />
+            <button className="preview-remove-btn" onClick={handleRemoveImage}>
               ×
             </button>
           </div>
         )}
 
-        <div className="input-wrapper">
+        <div className="input-area">
           <input
             ref={fileInputRef}
             type="file"
@@ -235,29 +267,35 @@ const Chat: React.FC<ChatProps> = ({ onKnowledgeCountChange }) => {
             onChange={handleImageSelect}
           />
           <button
-            className="image-upload-btn"
+            className="icon-btn image-btn"
             onClick={() => fileInputRef.current?.click()}
-            title="上传检查报告或身体指标图片"
+            title="上传图片"
           >
-            📊
+            📷
           </button>
-          <div className="textarea-wrapper">
+
+          <div className="input-box">
             <textarea
-              className="message-input"
+              className="message-textarea"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="请输入您的健康问题... 例如：NMN 如何补充？(Shift+Enter 换行)"
+              placeholder="请输入您的健康问题... (Shift+Enter 换行)"
               disabled={loading}
+              rows={1}
             />
           </div>
+
           <button
-            className="send-btn"
+            className={`icon-btn send-btn ${loading || (!inputText.trim() && !selectedImage) ? 'disabled' : ''}`}
             onClick={handleSend}
             disabled={loading || (!inputText.trim() && !selectedImage)}
             title="发送"
           >
-            ➤
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
           </button>
         </div>
       </div>
@@ -276,9 +314,10 @@ const Chat: React.FC<ChatProps> = ({ onKnowledgeCountChange }) => {
         onClose={() => setShowKnowledgeListModal(false)}
         onRefresh={loadKnowledgeCount}
       />
+
+      <MessageContainer />
     </div>
   );
 };
 
 export default Chat;
-
