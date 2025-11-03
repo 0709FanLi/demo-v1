@@ -85,3 +85,8 @@ htmlcov/
 # Project specific
 backend/data/
 
+# 部署脚本（包含敏感信息，不要提交到 git）
+deploy_auto.sh
+deploy.sh
+*.sh.local
+
