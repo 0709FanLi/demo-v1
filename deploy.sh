@@ -90,13 +90,34 @@ test_connection() {
     fi
 }
 
+# 构建前端
+build_frontend() {
+    print_header "构建前端应用"
+    
+    print_info "检查前端依赖..."
+    if [ ! -d "frontend/node_modules" ]; then
+        print_info "安装前端依赖..."
+        cd frontend && npm install && cd ..
+    fi
+    
+    print_info "构建前端生产版本..."
+    cd frontend
+    if npm run build; then
+        print_success "前端构建成功"
+    else
+        print_error "前端构建失败"
+        exit 1
+    fi
+    cd ..
+}
+
 # 同步代码到服务器
 sync_code() {
     print_header "同步代码到服务器"
     
-    print_info "准备同步文件..."
+    print_info "准备同步文件（包含前端构建产物）..."
     
-    # 使用 rsync 同步（排除不需要的文件）
+    # 使用 rsync 同步（排除不需要的文件，但包含 build 目录）
     if command -v sshpass &> /dev/null; then
         rsync -avz --delete \
             --exclude 'node_modules/' \
@@ -124,7 +145,7 @@ sync_code() {
             ./ $SERVER_USER@$SERVER_IP:$REMOTE_DIR/
     fi
     
-    print_success "代码同步完成"
+    print_success "代码同步完成（包含前端构建产物）"
 }
 
 # 执行远程命令
@@ -283,6 +304,7 @@ main() {
     # 执行部署流程
     check_requirements
     test_connection
+    build_frontend
     sync_code
     deploy_on_server
     health_check

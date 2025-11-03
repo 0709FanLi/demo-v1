@@ -13,9 +13,9 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
-echo "✅ 启动React开发服务器..."
+echo "✅ 启动Vite开发服务器..."
 echo "🌐 访问地址: http://localhost:3000"
 echo ""
 
-npm start
+npm run dev
 

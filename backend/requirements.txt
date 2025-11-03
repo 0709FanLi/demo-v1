@@ -4,7 +4,7 @@ uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
 # 阿里云SDK
-dashscope==1.14.1
+dashscope>=1.14.0
 
 # 向量数据库和检索
 pymilvus==2.4.0

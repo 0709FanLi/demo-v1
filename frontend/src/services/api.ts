@@ -7,7 +7,7 @@ import axios, { AxiosInstance } from 'axios';
 import { ChatRequest, ChatResponse, KnowledgeItem, KnowledgeDetail, KnowledgeUpdate } from '../types';
 
 // API基础URL（可通过环境变量配置）
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({

@@ -77,11 +77,11 @@ echo -e "${YELLOW}[3/3] 启动前端服务...${NC}"
 cd "$PROJECT_ROOT/frontend"
 
 # 停止旧进程
-pkill -f "react-scripts start" 2>/dev/null
+pkill -f "vite" 2>/dev/null
 sleep 2
 
-# 启动新进程
-nohup npm start > frontend.log 2>&1 &
+# 启动新进程（使用 Vite）
+nohup npm run dev > frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 echo -e "${YELLOW}  等待前端启动...${NC}"

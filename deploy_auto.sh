@@ -88,13 +88,35 @@ test_connection() {
     echo ""
 }
 
+# 构建前端
+build_frontend() {
+    print_header "3/7 构建前端应用"
+    
+    print_info "检查前端依赖..."
+    if [ ! -d "frontend/node_modules" ]; then
+        print_info "安装前端依赖..."
+        cd frontend && npm install && cd ..
+    fi
+    
+    print_info "构建前端生产版本..."
+    cd frontend
+    if npm run build; then
+        print_success "前端构建成功"
+    else
+        print_error "前端构建失败"
+        exit 1
+    fi
+    cd ..
+    echo ""
+}
+
 # 同步代码到服务器
 sync_code() {
-    print_header "3/6 同步代码到服务器"
+    print_header "4/7 同步代码到服务器"
     
     print_info "开始同步文件..."
     
-    # 使用 rsync 同步（排除不需要的文件）
+    # 使用 rsync 同步（排除不需要的文件，但包含 build 目录）
     sshpass -p "$SERVER_PASSWORD" rsync -avz --delete \
         --exclude 'node_modules/' \
         --exclude 'venv/' \
@@ -108,7 +130,7 @@ sync_code() {
         ./ $SERVER_USER@$SERVER_IP:$REMOTE_DIR/ \
         2>&1 | tail -n 10
     
-    print_success "代码同步完成"
+    print_success "代码同步完成（包含前端构建产物）"
     echo ""
 }
 
@@ -120,7 +142,7 @@ exec_remote() {
 
 # 在服务器上部署
 deploy_on_server() {
-    print_header "4/6 在服务器上部署应用"
+    print_header "5/7 在服务器上部署应用"
     
     print_info "创建部署脚本..."
     
@@ -173,6 +195,7 @@ docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
 
 echo ''
 echo '========== 构建并启动服务 =========='
+echo '注意：前端使用本地构建产物（Dockerfile.simple），后端和基础设施服务将重新构建'
 echo '正在构建镜像，这可能需要几分钟...'
 docker-compose -f docker-compose.prod.yml up -d --build
 
@@ -207,7 +230,7 @@ EOF
 
 # 健康检查
 health_check() {
-    print_header "5/6 服务健康检查"
+    print_header "6/7 服务健康检查"
     
     print_info "等待服务完全启动..."
     sleep 10
@@ -232,7 +255,7 @@ health_check() {
 
 # 显示部署信息
 show_info() {
-    print_header "6/6 部署完成"
+    print_header "7/7 部署完成"
     
     echo -e "${GREEN}"
     echo "╔════════════════════════════════════════╗"
@@ -268,6 +291,7 @@ main() {
     # 执行部署流程
     check_requirements
     test_connection
+    build_frontend
     sync_code
     deploy_on_server
     health_check

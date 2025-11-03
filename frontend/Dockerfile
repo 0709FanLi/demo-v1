@@ -1,20 +1,20 @@
 # 前端 Dockerfile - 抗衰老专家咨询系统
 # 阶段1：构建
-FROM node:16-alpine AS builder
+FROM node:18-slim AS builder
 
 WORKDIR /app
 
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm ci --only=production
+# 安装依赖（Vite 构建需要所有依赖）
+RUN npm install
 
 # 复制源代码
 COPY . .
 
 # 设置 API URL（生产环境）
-ENV REACT_APP_API_URL=http://106.14.204.36/api
+ENV VITE_API_URL=http://106.14.204.36/api
 
 # 构建生产版本
 RUN npm run build
@@ -22,7 +22,7 @@ RUN npm run build
 # 阶段2：运行
 FROM nginx:alpine
 
-# 复制构建产物
+# 复制构建产物（Vite 输出目录是 build）
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # 复制 Nginx 配置
