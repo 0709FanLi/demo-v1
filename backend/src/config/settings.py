@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     knowledge_relevance_threshold: float = 0.60  # 知识库相似度阈值（0-1），低于此值视为超出范围
     
     model_config = SettingsConfigDict(
+        # 配置加载优先级：环境变量 > env_file
+        # 环境变量会覆盖文件中的值
         env_file='env_template.txt',
         env_file_encoding='utf-8',
         case_sensitive=False,

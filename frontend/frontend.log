@@ -3,13 +3,8 @@
 > vite
 
 
-  VITE v5.4.21  ready in 1171 ms
+  VITE v5.4.21  ready in 152 ms
 
   ➜  Local:   http://localhost:3000/
-  ➜  Network: http://192.168.1.14:3000/
+  ➜  Network: http://192.168.3.77:3000/
   ➜  Network: http://198.18.0.1:3000/
-11:16:53 PM [vite] hmr update /src/pages/Chat.tsx, /src/pages/KnowledgeManagement.tsx, /src/components/KnowledgePanel.tsx, /src/components/KnowledgeListModal.tsx, /src/components/knowledge/KnowledgeForm.tsx, /src/components/import_export/ImportModal.tsx
-11:16:53 PM [vite] vite.config.ts changed, restarting server...
-11:16:53 PM [vite] page reload public/index.html
-11:16:53 PM [vite] page reload public/index.html
-11:16:53 PM [vite] server restarted.

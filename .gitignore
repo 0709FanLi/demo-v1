@@ -90,3 +90,4 @@ deploy_auto.sh
 deploy.sh
 *.sh.local
 
+frontend/frontend.log
