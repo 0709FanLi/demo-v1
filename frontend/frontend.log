@@ -3,8 +3,88 @@
 > vite
 
 
-  VITE v5.4.21  ready in 152 ms
+  VITE v5.4.21  ready in 134 ms
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: http://192.168.3.77:3000/
   ➜  Network: http://198.18.0.1:3000/
+10:51:55 PM [vite] hmr update /src/pages/Chat.tsx, /src/pages/KnowledgeManagement.tsx, /src/components/KnowledgePanel.tsx, /src/components/KnowledgeListModal.tsx, /src/components/knowledge/KnowledgeForm.tsx, /src/components/import_export/ImportModal.tsx
+11:17:38 PM [vite] hmr update /src/pages/Chat.tsx, /src/pages/KnowledgeManagement.tsx, /src/components/KnowledgePanel.tsx, /src/components/KnowledgeListModal.tsx, /src/components/knowledge/KnowledgeForm.tsx, /src/components/import_export/ImportModal.tsx
+11:42:17 AM [vite] changed tsconfig file detected: /Users/liguangyuan/Documents/GitHub/demo-v1/frontend/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+11:42:17 AM [vite] vite.config.ts changed, restarting server...
+11:42:18 AM [vite] server restarted.
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+Error: The following dependencies are imported but could not be resolved:
+
+  react (imported by /Users/liguangyuan/Documents/GitHub/demo-v1/frontend/src/components/KnowledgeListModal.tsx)
+  react-dom/client (imported by /Users/liguangyuan/Documents/GitHub/demo-v1/frontend/src/index.tsx)
+  axios (imported by /Users/liguangyuan/Documents/GitHub/demo-v1/frontend/src/services/api.ts)
+
+Are they installed?
+    at file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:50669:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:50174:26
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/index.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/App.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/pages/Chat.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/pages/KnowledgeManagement.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/KnowledgePanel.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/ConfirmDialog.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/KnowledgePanel.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/knowledge/KnowledgeForm.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/import_export/ImportModal.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/KnowledgeListModal.tsx". Does the file exist?
+11:42:18 AM [vite] Internal server error: Failed to resolve import "react" from "src/index.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/liguangyuan/Documents/GitHub/demo-v1/frontend/src/index.tsx:1:18
+  1  |  import React from "react";
+     |                     ^
+  2  |  import ReactDOM from "react-dom/client";
+  3  |  import App from "./App";
+      at TransformPluginContext._formatError (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41)
+      at TransformPluginContext.error (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16)
+      at normalizeUrl (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+      at async Promise.all (index 0)
+      at async TransformPluginContext.transform (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7)
+      at async PluginContainer.transform (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18)
+      at async loadAndTransform (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27)
+      at async viteTransformMiddleware (file:///Users/liguangyuan/Documents/GitHub/demo-v1/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/ConfirmDialog.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/App.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/pages/Chat.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/pages/KnowledgeManagement.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/KnowledgePanel.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/KnowledgePanel.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/ConfirmDialog.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/KnowledgeListModal.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/knowledge/KnowledgeForm.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/import_export/ImportModal.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/ConfirmDialog.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "react" from "src/components/common/Message.tsx". Does the file exist?
+11:42:18 AM [vite] Pre-transform error: Failed to resolve import "axios" from "src/services/api.ts". Does the file exist?

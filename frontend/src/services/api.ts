@@ -7,7 +7,10 @@ import axios, { AxiosInstance } from 'axios';
 import { ChatRequest, ChatResponse, KnowledgeItem, KnowledgeDetail, KnowledgeUpdate } from '../types';
 
 // API基础URL（可通过环境变量配置）
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+// 生产环境使用相对路径，开发环境使用完整URL
+// 注意：nginx 配置会将 /api/ 代理到后端，后端路由前缀是 /api/v1
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? '' : 'http://localhost:8001');
 
 // 创建axios实例
 const apiClient: AxiosInstance = axios.create({
@@ -135,7 +138,9 @@ export const getKnowledgeList = async (
   const response = await apiClient.get('/api/v1/knowledge/list', {
     params: { limit, offset },
   });
-  return response.data;
+  // 确保返回的是数组格式
+  const data = response.data;
+  return Array.isArray(data) ? data : [];
 };
 
 /**

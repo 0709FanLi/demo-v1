@@ -50,19 +50,33 @@ class KnowledgeService:
     
     def _initialize_milvus(self) -> None:
         """初始化Milvus连接."""
-        try:
-            connections.connect(
-                alias='default',
-                host=settings.milvus_host,
-                port=str(settings.milvus_port),
-            )
-            logger.info(
-                f'Milvus连接成功 - {settings.milvus_host}:{settings.milvus_port}'
-            )
-            
-        except Exception as e:
-            logger.error(f'Milvus连接失败: {e}')
-            raise KnowledgeBaseError(f'Milvus连接失败: {str(e)}')
+        import time
+        max_retries = 5
+        retry_delay = 10
+        
+        for attempt in range(max_retries):
+            try:
+                connections.connect(
+                    alias='default',
+                    host=settings.milvus_host,
+                    port=str(settings.milvus_port),
+                    timeout=30,  # 增加连接超时时间
+                )
+                logger.info(
+                    f'Milvus连接成功 - {settings.milvus_host}:{settings.milvus_port}'
+                )
+                return
+                
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f'Milvus连接失败 (尝试 {attempt + 1}/{max_retries}): {e}, '
+                        f'{retry_delay}秒后重试...'
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    logger.error(f'Milvus连接失败: {e}')
+                    raise KnowledgeBaseError(f'Milvus连接失败: {str(e)}')
     
     def _initialize_embedding_model(self) -> None:
         """初始化文本向量化模型."""

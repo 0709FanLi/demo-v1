@@ -37,10 +37,13 @@ const KnowledgeManagement: React.FC = () => {
     setLoading(true);
     try {
       const data = await getKnowledgeList(100, 0);
-      setKnowledgeList(data);
+      // 确保数据是数组格式
+      setKnowledgeList(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('加载知识列表失败:', error);
       showError('加载知识列表失败，请稍后重试');
+      // 出错时设置为空数组
+      setKnowledgeList([]);
     } finally {
       setLoading(false);
     }
@@ -94,14 +97,17 @@ const KnowledgeManagement: React.FC = () => {
     setDeleteConfirm({ isOpen: false, docId: null });
   };
 
-  const filteredList = knowledgeList.filter((item) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      item.content.toLowerCase().includes(query) ||
-      item.category.toLowerCase().includes(query)
-    );
-  });
+  // 确保 knowledgeList 是数组再调用 filter
+  const filteredList = Array.isArray(knowledgeList) 
+    ? knowledgeList.filter((item) => {
+        if (!searchQuery.trim()) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+          item?.content?.toLowerCase().includes(query) ||
+          item?.category?.toLowerCase().includes(query)
+        );
+      })
+    : [];
 
   const getDocId = (metadata: any): string => {
     if (metadata?.id) {

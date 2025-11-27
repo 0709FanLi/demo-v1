@@ -48,10 +48,13 @@ const KnowledgeListModal: React.FC<KnowledgeListModalProps> = ({
     setLoading(true);
     try {
       const data = await getKnowledgeList(100, 0);
-      setKnowledgeList(data);
+      // 确保数据是数组格式
+      setKnowledgeList(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('加载知识列表失败:', error);
       showError('加载知识列表失败，请稍后重试');
+      // 出错时设置为空数组
+      setKnowledgeList([]);
     } finally {
       setLoading(false);
     }
